@@ -1,13 +1,30 @@
 import { useState } from "react";
 
+type Todo = {
+  text: string;
+  done: boolean;
+};
+
 export default function App() {
   const [text, setText] = useState("");
-  const [todos, setTodos] = useState<string[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
 
   const addTodo = () => {
     if (!text.trim()) return;
-    setTodos([...todos, text.trim()]);
+    setTodos([...todos, { text: text.trim(), done: false }]);
     setText("");
+  };
+
+  const toggleTodo = (index: number) => {
+    setTodos(
+      todos.map((t, i) =>
+        i === index ? { ...t, done: !t.done } : t
+      )
+    );
+  };
+
+  const deleteTodo = (index: number) => {
+    setTodos(todos.filter((_, i) => i !== index));
   };
 
   return (
@@ -33,14 +50,22 @@ export default function App() {
         {todos.map((todo, index) => (
           <div
             key={index}
-            style={styles.item}
-            onClick={() =>
-              setTodos(todos.filter((_, i) => i !== index))
-            }
+            style={{
+              ...styles.item,
+              background: todo.done ? "#EAEAEA" : "#fff",
+              color: todo.done ? "#888" : "#000",
+              textDecoration: todo.done ? "line-through" : "none",
+            }}
+            onClick={() => toggleTodo(index)}          // ワンタップ：チェック
+            onDoubleClick={() => deleteTodo(index)}    // ダブルタップ：削除
           >
-            {todo}
+            {todo.text}
           </div>
         ))}
+      </div>
+
+      <div style={styles.hint}>
+        タップ：チェック ／ ダブルタップ：削除
       </div>
     </div>
   );
@@ -79,11 +104,17 @@ const styles: any = {
   },
   item: {
     padding: 14,
-    background: "#fff",
     borderRadius: 12,
     marginBottom: 8,
     fontSize: 16,
     cursor: "pointer",
     userSelect: "none",
+    transition: "0.15s",
+  },
+  hint: {
+    marginTop: 12,
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
   },
 };
