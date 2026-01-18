@@ -42,7 +42,7 @@ export default function App() {
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>今日のやること</h1>
+      <h1 style={styles.title}>やることリスト</h1>
 
       {/* 入力フォーム */}
       <form
