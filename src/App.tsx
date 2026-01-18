@@ -1,59 +1,94 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-export default function BuyListApp() {
+type Todo = {
+  id: string;
+  text: string;
+  done: boolean;
+};
+
+export default function App() {
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [text, setText] = useState("");
-  const [items, setItems] = useState<string[]>([]);
 
+  // 初回読み込み
   useEffect(() => {
-    const saved = localStorage.getItem("buy-list");
-    if (saved) setItems(JSON.parse(saved));
+    const saved = localStorage.getItem("todos");
+    if (saved) setTodos(JSON.parse(saved));
   }, []);
 
-  const save = (next: string[]) => {
-    setItems(next);
-    localStorage.setItem("buy-list", JSON.stringify(next));
-  };
+  // 保存
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
-  const addItem = () => {
+  const addTodo = () => {
     if (!text.trim()) return;
-    save([...items, text.trim()]);
+    setTodos([
+      ...todos,
+      { id: crypto.randomUUID(), text, done: false },
+    ]);
     setText("");
   };
 
-  const removeItem = (index: number) => {
-    const next = items.filter((_, i) => i !== index);
-    save(next);
+  const toggleTodo = (id: string) => {
+    setTodos(todos.map(t =>
+      t.id === id ? { ...t, done: !t.done } : t
+    ));
+  };
+
+  const removeTodo = (id: string) => {
+    setTodos(todos.filter(t => t.id !== id));
   };
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>🛒 買う予定</h1>
+      <h1 style={styles.title}>今日のやること</h1>
 
+      {/* 入力フォーム */}
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          addItem();
-        }}
         style={styles.form}
+        onSubmit={(e) => {
+          e.preventDefault(); // Enterで保存
+          addTodo();
+        }}
       >
         <input
           style={styles.input}
-          placeholder="マイクで話してもOK"
+          type="text"
+          placeholder="やることを入力"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
         <button style={styles.add}>追加</button>
       </form>
 
-      <ul style={styles.list}>
-        {items.map((item, i) => (
-          <li key={i} style={styles.item} onClick={() => removeItem(i)}>
-            {item}
-          </li>
+      {/* リスト */}
+      <div style={styles.list}>
+        {todos.map(todo => (
+          <div key={todo.id} style={styles.item}>
+            <label style={styles.label}>
+              <input
+                type="checkbox"
+                checked={todo.done}
+                onChange={() => toggleTodo(todo.id)}
+              />
+              <span style={{
+                ...styles.text,
+                textDecoration: todo.done ? "line-through" : "none",
+                color: todo.done ? "#aaa" : "#333"
+              }}>
+                {todo.text}
+              </span>
+            </label>
+            <button
+              style={styles.delete}
+              onClick={() => removeTodo(todo.id)}
+            >
+              ×
+            </button>
+          </div>
         ))}
-      </ul>
-
-      <p style={styles.hint}>※ タップで削除</p>
+      </div>
     </div>
   );
 }
@@ -74,14 +109,14 @@ const styles: any = {
   },
   form: {
     width: "100%",
-    maxWidth: 360,
+    maxWidth: 420,
     display: "flex",
     gap: 8,
     marginBottom: 16,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 16, // ★ iPhoneズーム防止
     padding: 10,
     borderRadius: 12,
     border: "1px solid #ccc",
@@ -95,22 +130,29 @@ const styles: any = {
   },
   list: {
     width: "100%",
-    maxWidth: 360,
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
+    maxWidth: 420,
   },
   item: {
     background: "#fff",
-    padding: 12,
     borderRadius: 14,
+    padding: 12,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
-    fontSize: 16,
-    textAlign: "center",
   },
-  hint: {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#777",
+  label: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  text: {
+    fontSize: 16,
+  },
+  delete: {
+    background: "none",
+    border: "none",
+    fontSize: 20,
+    color: "#E85A5A",
   },
 };
