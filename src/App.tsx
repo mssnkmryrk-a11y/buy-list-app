@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+useEffect(() => {
+  const saved = localStorage.getItem("todos");
+  if (saved) {
+    setTodos(JSON.parse(saved));
+  }
+}, []);
 type Todo = {
   text: string;
   done: boolean;
@@ -14,7 +20,10 @@ export default function App() {
     setTodos([...todos, { text: text.trim(), done: false }]);
     setText("");
   };
-
+  
+useEffect(() => {
+  localStorage.setItem("todos", JSON.stringify(todos));
+}, [todos]);
   const toggleTodo = (index: number) => {
     setTodos(
       todos.map((t, i) =>
